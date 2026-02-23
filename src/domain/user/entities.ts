@@ -4,24 +4,37 @@
 
 import type { UserStatus, RelationshipType } from './valueObjects'
 
-export interface UserProfile {
-  userId: string
-  email: string
-  username: string
-  displayName: string
-  avatar: string | null
-  bio: string | null
-  customStatus: string | null
-  status: UserStatus
-  createdAt: string
-  updatedAt: string
+// Matches ProfileResponse from user-service
+export interface CustomStatus {
+  text: string | null
+  emoji: string | null
+  expiresAt: string | null
 }
 
-export interface UserPrivacy {
+export interface UserProfile {
   userId: string
-  allowFriendRequests: boolean
+  username: string
+  displayName: string
+  avatarUrl: string | null
+  bannerUrl: string | null
+  bio: string | null
+  customStatus: CustomStatus | null
+  status: UserStatus
+  createdAt: string
+}
+
+// Matches PrivacySettingsResponse from user-service
+export type DmPrivacy = 'Everyone' | 'Friends' | 'ServerMembers' | 'None'
+export type FriendRequestPrivacy = 'Everyone' | 'FriendsOfFriends' | 'None'
+
+export interface UserPrivacy {
+  allowDmsFrom: DmPrivacy
+  allowFriendRequestsFrom: FriendRequestPrivacy
   showOnlineStatus: boolean
-  allowDirectMessages: boolean
+  showCurrentActivity: boolean
+  showProfileToNonFriends: boolean
+  allowNsfwContent: boolean
+  contentFilterLevel: 0 | 1 | 2
 }
 
 export interface UserRelationship {
@@ -32,7 +45,7 @@ export interface UserRelationship {
     userId: string
     username: string
     displayName: string
-    avatar: string | null
+    avatarUrl: string | null
     status: UserStatus
   }
   relationshipType: RelationshipType

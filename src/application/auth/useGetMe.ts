@@ -12,15 +12,7 @@ export function useGetMe() {
     queryKey: ME_QUERY_KEY,
     queryFn: async () => {
       const user = await userRepository.getMe()
-      setUser({
-        userId: user.userId,
-        email: user.email,
-        username: user.username,
-        displayName: user.displayName,
-        avatar: user.avatar,
-        bio: user.bio,
-        createdAt: user.createdAt,
-      })
+      setUser(user)
       return user
     },
     enabled: tokenStorage.hasTokens(),

@@ -38,9 +38,14 @@ interface RawMember {
     user_id: string
     username: string
     display_name: string
-    avatar: string | null
+    avatar_url: string | null
     status: string
   }
+}
+
+interface RawMemberListResponse {
+  members: RawMember[]
+  total: number
 }
 
 interface RawRole {
@@ -141,7 +146,7 @@ function mapMember(raw: RawMember): GuildMember {
           userId: raw.user.user_id,
           username: raw.user.username,
           displayName: raw.user.display_name,
-          avatar: raw.user.avatar,
+          avatarUrl: raw.user.avatar_url,
           status: raw.user.status,
         }
       : undefined,
@@ -209,14 +214,43 @@ export const guildRepository = {
     }
   },
 
+  // Backend: GET /guilds/:guild_id/members  → { members: [...], total }
   async getMembers(guildId: string): Promise<GuildMember[]> {
-    const { data } = await httpClient.get<RawMember[]>(`/guilds/${guildId}/members`)
-    return data.map(mapMember)
+    const { data } = await httpClient.get<RawMemberListResponse>(`/guilds/${guildId}/members`)
+    return data.members.map(mapMember)
+  },
+
+  // Backend: GET /guilds/:guild_id/members/:user_id
+  async getMember(guildId: string, userId: string): Promise<GuildMember> {
+    const { data } = await httpClient.get<RawMember>(`/guilds/${guildId}/members/${userId}`)
+    return mapMember(data)
+  },
+
+  // Backend: DELETE /guilds/:guild_id/members/:user_id  body: { reason? }
+  async kickMember(guildId: string, userId: string, reason?: string): Promise<void> {
+    await httpClient.delete(`/guilds/${guildId}/members/${userId}`, {
+      data: reason ? { reason } : undefined,
+    })
+  },
+
+  // Backend: PUT /guilds/:guild_id/members/:user_id/roles  body: { role_id }
+  async addMemberRole(guildId: string, userId: string, roleId: string): Promise<void> {
+    await httpClient.put(`/guilds/${guildId}/members/${userId}/roles`, { role_id: roleId })
+  },
+
+  // Backend: DELETE /guilds/:guild_id/members/:user_id/roles/:role_id
+  async removeMemberRole(guildId: string, userId: string, roleId: string): Promise<void> {
+    await httpClient.delete(`/guilds/${guildId}/members/${userId}/roles/${roleId}`)
   },
 
   async getRoles(guildId: string): Promise<GuildRole[]> {
     const { data } = await httpClient.get<RawRole[]>(`/guilds/${guildId}/roles`)
     return data.map(mapRole)
+  },
+
+  async getRole(guildId: string, roleId: string): Promise<GuildRole> {
+    const { data } = await httpClient.get<RawRole>(`/guilds/${guildId}/roles/${roleId}`)
+    return mapRole(data)
   },
 
   async createRole(guildId: string, dto: CreateRoleDto): Promise<GuildRole> {
@@ -243,15 +277,24 @@ export const guildRepository = {
     return data.map(mapInvite)
   },
 
-  async deleteInvite(guildId: string, inviteId: string): Promise<void> {
-    await httpClient.delete(`/guilds/${guildId}/invites/${inviteId}`)
+  // Backend: DELETE /guilds/:guild_id/invites/:code  (code is 8-char string, not UUID)
+  async deleteInvite(guildId: string, code: string): Promise<void> {
+    await httpClient.delete(`/guilds/${guildId}/invites/${code}`)
   },
 
+  // Backend: GET /invites/:code (public invite preview)
+  async getInviteByCode(code: string): Promise<GuildInvite> {
+    const { data } = await httpClient.get<RawInvite>(`/invites/${code}`)
+    return mapInvite(data)
+  },
+
+  // Backend: POST /invites/:code/use
   async joinByCode(code: string): Promise<Guild> {
-    const { data } = await httpClient.post<RawGuild>(`/guilds/join/${code}`)
+    const { data } = await httpClient.post<RawGuild>(`/invites/${code}/use`)
     return mapGuild(data)
   },
 
+  // Backend: DELETE /guilds/:guild_id/members/@me
   async leave(guildId: string): Promise<void> {
     await httpClient.delete(`/guilds/${guildId}/members/@me`)
   },

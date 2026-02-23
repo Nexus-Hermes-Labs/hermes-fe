@@ -58,7 +58,7 @@ export function MemberList({ guildId }: MemberListProps) {
       >
         <UserAvatar
           displayName={member.user.displayName}
-          avatar={member.user.avatar}
+          avatarUrl={member.user.avatarUrl}
           status={member.user.status as UserStatus}
           showStatus
           size="sm"

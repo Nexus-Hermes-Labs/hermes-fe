@@ -52,9 +52,13 @@ export default function PrivacySettingsPage() {
   const { watch, setValue, handleSubmit } = useForm<UpdatePrivacyData>({
     resolver: zodResolver(UpdatePrivacySchema),
     values: {
-      allow_friend_requests: privacy?.allowFriendRequests,
+      // Map enum → boolean for toggle: 'Everyone' = on, anything else = off
+      allow_friend_requests_from: privacy?.allowFriendRequestsFrom,
+      allow_dms_from: privacy?.allowDmsFrom,
       show_online_status: privacy?.showOnlineStatus,
-      allow_direct_messages: privacy?.allowDirectMessages,
+      show_current_activity: privacy?.showCurrentActivity,
+      show_profile_to_non_friends: privacy?.showProfileToNonFriends,
+      allow_nsfw_content: privacy?.allowNsfwContent,
     },
   })
 
@@ -89,14 +93,19 @@ export default function PrivacySettingsPage() {
           className="rounded-lg p-4 mb-6 divide-y"
           style={{
             background: 'var(--color-surface-raised)',
-            divideColor: 'var(--color-border)',
           }}
         >
           <Toggle
             label="Allow Friend Requests"
             description="Let other users send you friend requests."
-            checked={values.allow_friend_requests ?? true}
-            onChange={(v) => setValue('allow_friend_requests', v)}
+            checked={values.allow_friend_requests_from === 'Everyone'}
+            onChange={(v) => setValue('allow_friend_requests_from', v ? 'Everyone' : 'None')}
+          />
+          <Toggle
+            label="Allow Direct Messages"
+            description="Let server members send you direct messages."
+            checked={values.allow_dms_from === 'Everyone'}
+            onChange={(v) => setValue('allow_dms_from', v ? 'Everyone' : 'None')}
           />
           <Toggle
             label="Show Online Status"
@@ -105,10 +114,16 @@ export default function PrivacySettingsPage() {
             onChange={(v) => setValue('show_online_status', v)}
           />
           <Toggle
-            label="Allow Direct Messages"
-            description="Let server members send you direct messages."
-            checked={values.allow_direct_messages ?? true}
-            onChange={(v) => setValue('allow_direct_messages', v)}
+            label="Show Current Activity"
+            description="Display what you're currently doing to others."
+            checked={values.show_current_activity ?? true}
+            onChange={(v) => setValue('show_current_activity', v)}
+          />
+          <Toggle
+            label="Show Profile to Non-Friends"
+            description="Allow people who aren't your friends to view your full profile."
+            checked={values.show_profile_to_non_friends ?? false}
+            onChange={(v) => setValue('show_profile_to_non_friends', v)}
           />
         </div>
 

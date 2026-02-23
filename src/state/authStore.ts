@@ -1,21 +1,17 @@
 // Mirrors: state/app_state.rs — authentication domain state
-// { user, isAuthenticated, setUser, setTokensAndUser, clearAuth }
+// Stores UserProfile (from user-service) as the user shape
 
 import { create } from 'zustand'
-import type { AuthUser } from '@/domain/auth/entities'
+import type { UserProfile } from '@/domain/user/entities'
 import { tokenStorage } from '@/infrastructure/storage/tokenStorage'
 
 interface AuthState {
-  user: AuthUser | null
+  user: UserProfile | null
   isAuthenticated: boolean
 
-  setUser: (user: AuthUser) => void
-  setTokensAndUser: (
-    accessToken: string,
-    refreshToken: string,
-    expiresIn: number,
-    user: AuthUser,
-  ) => void
+  setUser: (user: UserProfile) => void
+  // Stores tokens and marks as authenticated; user is then loaded by useGetMe
+  setAuthenticated: (accessToken: string, refreshToken: string, expiresIn: number) => void
   clearAuth: () => void
 }
 
@@ -25,9 +21,9 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   setUser: (user) => set({ user, isAuthenticated: true }),
 
-  setTokensAndUser: (accessToken, refreshToken, expiresIn, user) => {
+  setAuthenticated: (accessToken, refreshToken, expiresIn) => {
     tokenStorage.setTokens(accessToken, refreshToken, expiresIn)
-    set({ user, isAuthenticated: true })
+    set({ isAuthenticated: true })
   },
 
   clearAuth: () => {

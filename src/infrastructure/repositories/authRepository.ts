@@ -79,9 +79,12 @@ export const authRepository = {
     return tokens
   },
 
-  async logout(): Promise<void> {
+  async logout(allDevices = false): Promise<void> {
     try {
-      await httpClient.post('/auth/logout')
+      await httpClient.post('/auth/logout', {
+        refresh_token: tokenStorage.getRefreshToken(),
+        all_devices: allDevices,
+      })
     } finally {
       tokenStorage.clearTokens()
     }

@@ -47,7 +47,7 @@ export function FriendsList() {
         >
           <UserAvatar
             displayName={r.targetUser.displayName}
-            avatar={r.targetUser.avatar}
+            avatarUrl={r.targetUser.avatarUrl}
             status={r.targetUser.status as UserStatus}
             showStatus
             size="md"

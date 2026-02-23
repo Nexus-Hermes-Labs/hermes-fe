@@ -22,7 +22,7 @@ export default function ProfileSettingsPage() {
     values: {
       display_name: user?.displayName,
       bio: user?.bio ?? undefined,
-      avatar: user?.avatar ?? undefined,
+      avatar_url: user?.avatarUrl ?? undefined,
     },
   })
 
@@ -63,7 +63,7 @@ export default function ProfileSettingsPage() {
           <div className="-mt-8 mb-3">
             <UserAvatar
               displayName={user.displayName}
-              avatar={user.avatar}
+              avatarUrl={user.avatarUrl}
               size="lg"
               showStatus={false}
             />

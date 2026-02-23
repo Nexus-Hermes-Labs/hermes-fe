@@ -115,7 +115,6 @@ const channelRoute = createRoute({
 // ── Settings layout route ─────────────────────────────────────────────────────
 const settingsLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  id: 'settings-layout',
   path: '/settings',
   component: SettingsLayout,
   beforeLoad: () => {

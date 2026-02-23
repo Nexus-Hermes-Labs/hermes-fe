@@ -19,7 +19,7 @@ export function UserPanel() {
     >
       <UserAvatar
         displayName={user.displayName}
-        avatar={user.avatar}
+        avatarUrl={user.avatarUrl}
         status={'online' as UserStatus}
         showStatus
         size="md"

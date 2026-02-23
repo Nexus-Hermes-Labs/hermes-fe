@@ -6,7 +6,7 @@ import type { UserStatus } from '@/domain/user/valueObjects'
 
 interface UserAvatarProps {
   displayName: string
-  avatar: string | null
+  avatarUrl: string | null
   status?: UserStatus
   size?: 'sm' | 'md' | 'lg'
   showStatus?: boolean
@@ -21,7 +21,7 @@ const SIZE = {
 
 export function UserAvatar({
   displayName,
-  avatar,
+  avatarUrl,
   status,
   size = 'md',
   showStatus = true,
@@ -31,9 +31,9 @@ export function UserAvatar({
 
   return (
     <div className={cn('relative inline-flex flex-shrink-0', className)}>
-      {avatar ? (
+      {avatarUrl ? (
         <img
-          src={avatar}
+          src={avatarUrl}
           alt={displayName}
           className={cn('rounded-full object-cover', s.avatar)}
         />

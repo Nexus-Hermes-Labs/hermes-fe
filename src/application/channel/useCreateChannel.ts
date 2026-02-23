@@ -12,7 +12,7 @@ export function useCreateChannel(guildId: string) {
       channelRepository.create(guildId, {
         name: data.name,
         channel_type: data.channel_type,
-        topic: data.topic,
+        description: data.description,
         parent_id: data.parent_id,
         position: data.position,
       }),

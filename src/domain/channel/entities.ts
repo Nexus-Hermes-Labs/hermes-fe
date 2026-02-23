@@ -2,16 +2,16 @@
 
 import type { ChannelType } from './valueObjects'
 
+// Backend returns `id` (not `channel_id`), `description` (not `topic`)
+// No is_nsfw or slow_mode_seconds in the response
 export interface Channel {
   channelId: string
   guildId: string
   parentId: string | null
   name: string
   channelType: ChannelType
-  topic: string | null
+  description: string | null
   position: number
-  isNsfw: boolean
-  slowModeSeconds: number
   createdAt: string
   updatedAt: string
 }

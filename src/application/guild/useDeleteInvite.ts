@@ -5,7 +5,8 @@ export function useDeleteInvite(guildId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (inviteId: string) => guildRepository.deleteInvite(guildId, inviteId),
+    // code is the 8-char invite code, not a UUID
+    mutationFn: (code: string) => guildRepository.deleteInvite(guildId, code),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['guilds', guildId, 'invites'] })
     },

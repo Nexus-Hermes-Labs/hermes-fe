@@ -6,7 +6,7 @@ import type { RegisterFormData } from '@/presentation/dto/auth.dto'
 
 export function useRegister() {
   const router = useRouter()
-  const { setTokensAndUser } = useAuthStore()
+  const { setAuthenticated } = useAuthStore()
 
   return useMutation({
     mutationFn: (data: RegisterFormData) =>
@@ -16,8 +16,8 @@ export function useRegister() {
         display_name: data.display_name,
         password: data.password,
       }),
-    onSuccess: ({ tokens, user }) => {
-      setTokensAndUser(tokens.accessToken, tokens.refreshToken, tokens.expiresIn, user)
+    onSuccess: ({ tokens }) => {
+      setAuthenticated(tokens.accessToken, tokens.refreshToken, tokens.expiresIn)
       void router.navigate({ to: '/channels/@me' })
     },
   })

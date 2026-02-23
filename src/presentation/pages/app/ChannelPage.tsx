@@ -35,7 +35,7 @@ export default function ChannelPage() {
         >
           {channel?.name ?? 'Loading...'}
         </h1>
-        {channel?.topic && (
+        {channel?.description && (
           <>
             <div
               className="mx-2 h-4 w-px"
@@ -45,7 +45,7 @@ export default function ChannelPage() {
               className="text-sm truncate"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              {channel.topic}
+              {channel.description}
             </span>
           </>
         )}
