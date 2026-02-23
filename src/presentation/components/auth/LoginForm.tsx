@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from '@tanstack/react-router'
+import axios from 'axios'
 import { LoginFormSchema, type LoginFormData } from '@/presentation/dto/auth.dto'
 import { useLogin } from '@/application/auth/useLogin'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
@@ -89,7 +90,9 @@ export function LoginForm() {
 
         {login.error && (
           <p className="text-xs" style={{ color: 'var(--color-danger)' }}>
-            Invalid email or password. Please try again.
+            {axios.isAxiosError(login.error)
+              ? (login.error.response?.data?.error ?? login.error.message ?? 'Login failed. Please try again.')
+              : 'Login failed. Please try again.'}
           </p>
         )}
 

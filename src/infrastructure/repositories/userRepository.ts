@@ -201,68 +201,71 @@ export const userRepository = {
   },
 
   async getRelationships(): Promise<UserRelationship[]> {
-    const { data } = await httpClient.get<RawRelationship[]>('/relationships/friends')
+    const { data } = await httpClient.get<RawRelationship[]>('/users/@me/relationships/friends')
     return data.map(mapRelationship)
   },
 
   async getFriends(): Promise<UserRelationship[]> {
-    const { data } = await httpClient.get<RawRelationship[]>('/relationships/friends')
+    const { data } = await httpClient.get<RawRelationship[]>('/users/@me/relationships/friends')
     return data.map(mapRelationship)
   },
 
   async getIncomingRequests(): Promise<UserRelationship[]> {
-    const { data } = await httpClient.get<RawRelationship[]>('/relationships/incoming')
+    const { data } = await httpClient.get<RawRelationship[]>('/users/@me/relationships/incoming')
     return data.map(mapRelationship)
   },
 
   async getOutgoingRequests(): Promise<UserRelationship[]> {
-    const { data } = await httpClient.get<RawRelationship[]>('/relationships/outgoing')
+    const { data } = await httpClient.get<RawRelationship[]>('/users/@me/relationships/outgoing')
     return data.map(mapRelationship)
   },
 
   async getBlockedUsers(): Promise<UserRelationship[]> {
-    const { data } = await httpClient.get<RawRelationship[]>('/relationships/blocked')
+    const { data } = await httpClient.get<RawRelationship[]>('/users/@me/relationships/blocked')
     return data.map(mapRelationship)
   },
 
-  // Backend: POST /relationships/request  body: { target_user_id, message? }
+  // Backend: POST /api/v1/users/@me/relationships/request  body: { target_user_id, message? }
   async sendFriendRequest(targetUserId: string, message?: string): Promise<UserRelationship> {
-    const { data } = await httpClient.post<RawRelationship>('/relationships/request', {
+    const { data } = await httpClient.post<RawRelationship>('/users/@me/relationships/request', {
       target_user_id: targetUserId,
       ...(message ? { message } : {}),
     })
     return mapRelationship(data)
   },
 
-  // Backend: PUT /relationships/request/accept  body: { target_user_id }
+  // Backend: PUT /api/v1/users/@me/relationships/request/accept  body: { target_user_id }
   async acceptFriendRequest(targetUserId: string): Promise<UserRelationship> {
-    const { data } = await httpClient.put<RawRelationship>('/relationships/request/accept', {
-      target_user_id: targetUserId,
-    })
+    const { data } = await httpClient.put<RawRelationship>(
+      '/users/@me/relationships/request/accept',
+      { target_user_id: targetUserId },
+    )
     return mapRelationship(data)
   },
 
-  // Backend: PUT /relationships/request/decline  body: { target_user_id }
+  // Backend: PUT /api/v1/users/@me/relationships/request/decline  body: { target_user_id }
   async declineFriendRequest(targetUserId: string): Promise<void> {
-    await httpClient.put('/relationships/request/decline', { target_user_id: targetUserId })
+    await httpClient.put('/users/@me/relationships/request/decline', {
+      target_user_id: targetUserId,
+    })
   },
 
-  // Backend: POST /relationships/block  body: { target_user_id }
+  // Backend: POST /api/v1/users/@me/relationships/block  body: { target_user_id }
   async blockUser(targetUserId: string): Promise<UserRelationship> {
-    const { data } = await httpClient.post<RawRelationship>('/relationships/block', {
+    const { data } = await httpClient.post<RawRelationship>('/users/@me/relationships/block', {
       target_user_id: targetUserId,
     })
     return mapRelationship(data)
   },
 
-  // Backend: DELETE /relationships/friend/:target_user_id
+  // Backend: DELETE /api/v1/users/@me/relationships/friend/:target_user_id
   async removeFriend(targetUserId: string): Promise<void> {
-    await httpClient.delete(`/relationships/friend/${targetUserId}`)
+    await httpClient.delete(`/users/@me/relationships/friend/${targetUserId}`)
   },
 
-  // Backend: DELETE /relationships/block/:target_user_id
+  // Backend: DELETE /api/v1/users/@me/relationships/block/:target_user_id
   async unblockUser(targetUserId: string): Promise<void> {
-    await httpClient.delete(`/relationships/block/${targetUserId}`)
+    await httpClient.delete(`/users/@me/relationships/block/${targetUserId}`)
   },
 
   // Backend: GET /users/search?query=...

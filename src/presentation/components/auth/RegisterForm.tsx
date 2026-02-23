@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from '@tanstack/react-router'
+import axios from 'axios'
 import { RegisterFormSchema, type RegisterFormData } from '@/presentation/dto/auth.dto'
 import { useRegister } from '@/application/auth/useRegister'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
@@ -120,7 +121,9 @@ export function RegisterForm() {
 
         {register_.error && (
           <p className="text-xs" style={{ color: 'var(--color-danger)' }}>
-            Registration failed. This email or username may already be taken.
+            {axios.isAxiosError(register_.error)
+              ? (register_.error.response?.data?.error ?? register_.error.message ?? 'Registration failed. Please try again.')
+              : 'Registration failed. Please try again.'}
           </p>
         )}
 
