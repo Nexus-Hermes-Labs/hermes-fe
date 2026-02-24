@@ -1,0 +1,22 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hermes-frontend
+    volumes:
+      - .:/app
+      - /app/node_modules          # preserve container's node_modules
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.priority=1"   # lowest priority, API routes win
+      - "traefik.http.services.frontend.loadbalancer.server.port=3001"
+    networks:
+      - hermes-network
+
+networks:
+  hermes-network:
+    name: hermes-network
+    driver: bridge
