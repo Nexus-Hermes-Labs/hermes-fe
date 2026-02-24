@@ -83,9 +83,9 @@ export interface CreateGuildDto {
 
 export interface UpdateGuildDto {
   name?: string
-  description?: string
-  icon_url?: string
-  banner_url?: string
+  description?: string | null
+  icon_url?: string | null
+  banner_url?: string | null
   visibility?: string
 }
 

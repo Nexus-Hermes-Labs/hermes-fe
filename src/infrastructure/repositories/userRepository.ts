@@ -281,4 +281,213 @@ export const userRepository = {
     const { data } = await httpClient.get<RawUserProfile>(`/users/${userId}`)
     return mapProfile(data)
   },
+
+  // Backend: GET /users/username/:username
+  async getByUsername(username: string): Promise<UserProfile> {
+    const { data } = await httpClient.get<RawUserProfile>(`/users/username/${username}`)
+    return mapProfile(data)
+  },
+
+  // Backend: GET /users/check-username/:username → { available: bool }
+  async checkUsername(username: string): Promise<boolean> {
+    const { data } = await httpClient.get<{ available: boolean }>(`/users/check-username/${username}`)
+    return data.available
+  },
+
+  // Backend: GET /users/online → UserProfile[]
+  async getOnlineUsers(): Promise<UserProfile[]> {
+    const { data } = await httpClient.get<RawUserProfile[]>('/users/online')
+    return data.map(mapProfile)
+  },
+
+  // Backend: DELETE /users/@me
+  async deleteMe(): Promise<void> {
+    await httpClient.delete('/users/@me')
+  },
+
+  // Backend: POST /users/@me/privacy/preset  body: { preset }
+  // preset values: "Public" | "Private"
+  async applyPrivacyPreset(preset: 'Public' | 'Private'): Promise<void> {
+    await httpClient.post('/users/@me/privacy/preset', { preset })
+  },
+
+  // Backend: GET /users/@me/relationships/:target_user_id
+  async getRelationship(targetUserId: string): Promise<UserRelationship | null> {
+    const { data } = await httpClient.get<RawRelationship | null>(
+      `/users/@me/relationships/${targetUserId}`,
+    )
+    return data ? mapRelationship(data) : null
+  },
+
+  // ── Admin: Profile management (requires Admin JWT role) ─────────────────────
+
+  // Backend: PATCH /users/:user_id
+  async adminUpdateUser(userId: string, dto: UpdateProfileDto): Promise<UserProfile> {
+    const { data } = await httpClient.patch<RawUserProfile>(`/users/${userId}`, dto)
+    return mapProfile(data)
+  },
+
+  // Backend: DELETE /users/:user_id
+  async adminDeleteUser(userId: string): Promise<void> {
+    await httpClient.delete(`/users/${userId}`)
+  },
+
+  // Backend: PUT /users/:user_id/username  body: { new_username }
+  async adminChangeUsername(userId: string, newUsername: string): Promise<UserProfile> {
+    const { data } = await httpClient.put<RawUserProfile>(`/users/${userId}/username`, {
+      new_username: newUsername,
+    })
+    return mapProfile(data)
+  },
+
+  // Backend: PUT /users/:user_id/status  body: { status }
+  async adminUpdateUserStatus(userId: string, dto: UpdateStatusDto): Promise<UserProfile> {
+    const { data } = await httpClient.put<RawUserProfile>(`/users/${userId}/status`, dto)
+    return mapProfile(data)
+  },
+
+  // Backend: PUT /users/:user_id/custom-status
+  async adminUpdateUserCustomStatus(userId: string, dto: UpdateCustomStatusDto): Promise<void> {
+    await httpClient.put(`/users/${userId}/custom-status`, dto)
+  },
+
+  // Backend: DELETE /users/:user_id/custom-status
+  async adminClearUserCustomStatus(userId: string): Promise<void> {
+    await httpClient.delete(`/users/${userId}/custom-status`)
+  },
+
+  // ── Admin: Privacy management ───────────────────────────────────────────────
+
+  // Backend: GET /users/:user_id/privacy
+  async adminGetUserPrivacy(userId: string): Promise<UserPrivacy> {
+    const { data } = await httpClient.get<RawPrivacy>(`/users/${userId}/privacy`)
+    return mapPrivacy(data)
+  },
+
+  // Backend: PUT /users/:user_id/privacy/dm  body: { allow_dms_from }
+  async adminUpdateUserDmPrivacy(userId: string, allowDmsFrom: string): Promise<void> {
+    await httpClient.put(`/users/${userId}/privacy/dm`, { allow_dms_from: allowDmsFrom })
+  },
+
+  // Backend: PUT /users/:user_id/privacy/friend-requests  body: { allow_friend_requests_from }
+  async adminUpdateUserFriendRequestPrivacy(
+    userId: string,
+    allowFriendRequestsFrom: string,
+  ): Promise<void> {
+    await httpClient.put(`/users/${userId}/privacy/friend-requests`, {
+      allow_friend_requests_from: allowFriendRequestsFrom,
+    })
+  },
+
+  // Backend: PATCH /users/:user_id/privacy/visibility
+  async adminUpdateUserVisibilityPrivacy(
+    userId: string,
+    dto: {
+      show_online_status?: boolean
+      show_current_activity?: boolean
+      show_profile_to_non_friends?: boolean
+    },
+  ): Promise<void> {
+    await httpClient.patch(`/users/${userId}/privacy/visibility`, dto)
+  },
+
+  // Backend: PATCH /users/:user_id/privacy/content
+  async adminUpdateUserContentPrivacy(
+    userId: string,
+    dto: { allow_nsfw_content?: boolean; content_filter_level?: number },
+  ): Promise<void> {
+    await httpClient.patch(`/users/${userId}/privacy/content`, dto)
+  },
+
+  // Backend: POST /users/:user_id/privacy/preset  body: { preset }
+  async adminApplyUserPrivacyPreset(userId: string, preset: 'Public' | 'Private'): Promise<void> {
+    await httpClient.post(`/users/${userId}/privacy/preset`, { preset })
+  },
+
+  // ── Admin: Relationship management ─────────────────────────────────────────
+
+  // Backend: GET /users/:user_id/relationships/friends
+  async adminGetUserFriends(userId: string): Promise<UserRelationship[]> {
+    const { data } = await httpClient.get<RawRelationship[]>(`/users/${userId}/relationships/friends`)
+    return data.map(mapRelationship)
+  },
+
+  // Backend: GET /users/:user_id/relationships/incoming
+  async adminGetUserIncomingRequests(userId: string): Promise<UserRelationship[]> {
+    const { data } = await httpClient.get<RawRelationship[]>(
+      `/users/${userId}/relationships/incoming`,
+    )
+    return data.map(mapRelationship)
+  },
+
+  // Backend: GET /users/:user_id/relationships/outgoing
+  async adminGetUserOutgoingRequests(userId: string): Promise<UserRelationship[]> {
+    const { data } = await httpClient.get<RawRelationship[]>(
+      `/users/${userId}/relationships/outgoing`,
+    )
+    return data.map(mapRelationship)
+  },
+
+  // Backend: GET /users/:user_id/relationships/blocked
+  async adminGetUserBlockedUsers(userId: string): Promise<UserRelationship[]> {
+    const { data } = await httpClient.get<RawRelationship[]>(
+      `/users/${userId}/relationships/blocked`,
+    )
+    return data.map(mapRelationship)
+  },
+
+  // Backend: GET /users/:user_id/relationships/:target_user_id
+  async adminGetUserRelationship(
+    userId: string,
+    targetUserId: string,
+  ): Promise<UserRelationship | null> {
+    const { data } = await httpClient.get<RawRelationship | null>(
+      `/users/${userId}/relationships/${targetUserId}`,
+    )
+    return data ? mapRelationship(data) : null
+  },
+
+  // Backend: POST /users/:user_id/relationships/request  body: { target_user_id }
+  async adminSendFriendRequest(userId: string, targetUserId: string): Promise<UserRelationship> {
+    const { data } = await httpClient.post<RawRelationship>(
+      `/users/${userId}/relationships/request`,
+      { target_user_id: targetUserId },
+    )
+    return mapRelationship(data)
+  },
+
+  // Backend: PUT /users/:user_id/relationships/request/accept  body: { target_user_id }
+  async adminAcceptFriendRequest(userId: string, targetUserId: string): Promise<UserRelationship> {
+    const { data } = await httpClient.put<RawRelationship>(
+      `/users/${userId}/relationships/request/accept`,
+      { target_user_id: targetUserId },
+    )
+    return mapRelationship(data)
+  },
+
+  // Backend: PUT /users/:user_id/relationships/request/decline  body: { target_user_id }
+  async adminDeclineFriendRequest(userId: string, targetUserId: string): Promise<void> {
+    await httpClient.put(`/users/${userId}/relationships/request/decline`, {
+      target_user_id: targetUserId,
+    })
+  },
+
+  // Backend: DELETE /users/:user_id/relationships/friend/:target_user_id
+  async adminRemoveFriend(userId: string, targetUserId: string): Promise<void> {
+    await httpClient.delete(`/users/${userId}/relationships/friend/${targetUserId}`)
+  },
+
+  // Backend: POST /users/:user_id/relationships/block  body: { target_user_id }
+  async adminBlockUser(userId: string, targetUserId: string): Promise<UserRelationship> {
+    const { data } = await httpClient.post<RawRelationship>(
+      `/users/${userId}/relationships/block`,
+      { target_user_id: targetUserId },
+    )
+    return mapRelationship(data)
+  },
+
+  // Backend: DELETE /users/:user_id/relationships/block/:target_user_id
+  async adminUnblockUser(userId: string, targetUserId: string): Promise<void> {
+    await httpClient.delete(`/users/${userId}/relationships/block/${targetUserId}`)
+  },
 }

@@ -19,6 +19,7 @@ const DirectMessagesPage = lazy(
   () => import('@/presentation/pages/app/DirectMessagesPage'),
 )
 const ChannelPage = lazy(() => import('@/presentation/pages/app/ChannelPage'))
+const JoinByCodePage = lazy(() => import('@/presentation/pages/app/JoinByCodePage'))
 const ProfileSettingsPage = lazy(
   () => import('@/presentation/pages/settings/ProfileSettingsPage'),
 )
@@ -102,7 +103,10 @@ const guildRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/channels/$guildId',
   beforeLoad: ({ params }) => {
-    throw redirect({ to: `/channels/${params.guildId}/@me` })
+    throw redirect({
+      to: '/channels/$guildId/$channelId',
+      params: { guildId: params.guildId, channelId: '@me' },
+    })
   },
 })
 
@@ -110,6 +114,15 @@ const channelRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/channels/$guildId/$channelId',
   component: ChannelPage,
+})
+
+const joinByCodeRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/join/$code',
+  component: () => {
+    const { code } = joinByCodeRoute.useParams()
+    return <JoinByCodePage code={code} />
+  },
 })
 
 // ── Settings layout route ─────────────────────────────────────────────────────
@@ -146,7 +159,7 @@ const privacySettingsRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authLayoutRoute.addChildren([loginRoute, registerRoute]),
-  appLayoutRoute.addChildren([channelsMeRoute, guildRoute, channelRoute]),
+  appLayoutRoute.addChildren([channelsMeRoute, guildRoute, channelRoute, joinByCodeRoute]),
   settingsLayoutRoute.addChildren([
     profileSettingsRoute,
     accountSettingsRoute,

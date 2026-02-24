@@ -125,6 +125,34 @@ export default function PrivacySettingsPage() {
             checked={values.show_profile_to_non_friends ?? false}
             onChange={(v) => setValue('show_profile_to_non_friends', v)}
           />
+          <Toggle
+            label="Allow NSFW Content"
+            description="Show age-restricted content in servers that have it enabled."
+            checked={values.allow_nsfw_content ?? false}
+            onChange={(v) => setValue('allow_nsfw_content', v)}
+          />
+          <div className="py-3">
+            <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
+              Content Filter Level
+            </p>
+            <p className="text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+              Automatically scan and filter messages with explicit content.
+            </p>
+            <select
+              value={values.content_filter_level ?? 0}
+              onChange={(e) => setValue('content_filter_level', Number(e.target.value) as 0 | 1 | 2)}
+              className="rounded px-3 py-2 text-sm outline-none"
+              style={{
+                background: 'var(--color-input-bg)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid transparent',
+              }}
+            >
+              <option value={0}>None — Do not filter</option>
+              <option value={1}>Low — Filter from non-friends</option>
+              <option value={2}>Medium — Filter all messages</option>
+            </select>
+          </div>
         </div>
 
         <button

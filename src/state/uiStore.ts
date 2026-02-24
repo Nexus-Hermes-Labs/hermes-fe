@@ -9,6 +9,10 @@ type ModalKey =
   | 'createChannel'
   | 'invite'
   | 'userSettings'
+  | 'search'
+  | 'userProfile'
+  | 'joinGuild'
+  | 'customStatus'
 
 interface UIState {
   activeGuildId: string | null

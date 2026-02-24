@@ -1,29 +1,41 @@
 // Bottom-left panel: current user info + settings icon
 // Mirrors Discord's bottom bar
 
+import { useState } from 'react'
 import { Settings, Mic, Headphones } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { UserAvatar } from './UserAvatar'
+import { StatusPicker } from './StatusPicker'
 import { useAuthStore } from '@/state/authStore'
 import type { UserStatus } from '@/domain/user/valueObjects'
 
 export function UserPanel() {
   const { user } = useAuthStore()
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   if (!user) return null
 
+  const status = (user.status ?? 'offline') as UserStatus
+
   return (
     <div
-      className="flex items-center gap-2 px-2 py-3 flex-shrink-0"
+      className="relative flex items-center gap-2 px-2 py-3 flex-shrink-0"
       style={{ background: 'var(--color-guild-sidebar)', borderTop: '1px solid var(--color-border)' }}
     >
-      <UserAvatar
-        displayName={user.displayName}
-        avatarUrl={user.avatarUrl}
-        status={'online' as UserStatus}
-        showStatus
-        size="md"
-      />
+      <button
+        onClick={() => setPickerOpen((v) => !v)}
+        className="rounded-full focus:outline-none"
+        aria-label="Change status"
+        title="Change status"
+      >
+        <UserAvatar
+          displayName={user.displayName}
+          avatarUrl={user.avatarUrl}
+          status={status}
+          showStatus
+          size="md"
+        />
+      </button>
 
       <div className="flex-1 min-w-0">
         <p
@@ -64,6 +76,8 @@ export function UserPanel() {
           <Settings size={16} />
         </Link>
       </div>
+
+      {pickerOpen && <StatusPicker onClose={() => setPickerOpen(false)} />}
     </div>
   )
 }

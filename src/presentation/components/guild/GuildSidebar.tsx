@@ -1,6 +1,6 @@
 // Far-left guild icon bar — mirrors Discord's server list
 
-import { Plus, MessageSquare } from 'lucide-react'
+import { Plus, MessageSquare, Search } from 'lucide-react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { GuildIcon } from './GuildIcon'
 import { useGuildStore } from '@/state/guildStore'
@@ -23,6 +23,17 @@ export function GuildSidebar() {
       className="flex w-[72px] flex-shrink-0 flex-col items-center gap-2 overflow-y-auto py-3"
       style={{ background: 'var(--color-guild-sidebar)' }}
     >
+      {/* Search button */}
+      <button
+        onClick={() => useUIStore.getState().openModal('search')}
+        className="flex h-12 w-12 items-center justify-center rounded-full transition-all duration-200 hover:rounded-2xl"
+        style={{ background: 'var(--color-channel-sidebar)', color: 'var(--color-text-secondary)' }}
+        title="Search (Ctrl+K)"
+        aria-label="Search"
+      >
+        <Search size={20} />
+      </button>
+
       {/* DM button */}
       <Link
         to="/channels/@me"

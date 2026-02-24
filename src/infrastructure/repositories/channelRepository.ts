@@ -35,7 +35,7 @@ export interface CreateChannelDto {
 export interface UpdateChannelDto {
   name?: string
   description?: string
-  parent_id?: string
+  parent_id?: string | null
   position?: number
 }
 

@@ -99,4 +99,9 @@ export const authRepository = {
     tokenStorage.setTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresIn)
     return tokens
   },
+
+  // Backend: GET /auth/verify-email?token=...
+  async verifyEmail(token: string): Promise<void> {
+    await httpClient.get('/auth/verify-email', { params: { token } })
+  },
 }

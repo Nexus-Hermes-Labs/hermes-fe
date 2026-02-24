@@ -3,12 +3,14 @@
 import { UserAvatar } from './UserAvatar'
 import { UserStatusBadge } from './UserStatusBadge'
 import { useGetRelationships } from '@/application/user/useGetRelationships'
+import { useUIStore } from '@/state/uiStore'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
 import { EmptyState } from '@/presentation/components/shared/EmptyState'
 import type { UserStatus } from '@/domain/user/valueObjects'
 
 export function FriendsList() {
   const { data: relationships, isLoading } = useGetRelationships()
+  const { openModal } = useUIStore()
 
   if (isLoading) {
     return (
@@ -36,6 +38,7 @@ export function FriendsList() {
           key={r.relationshipId}
           className="flex items-center gap-3 rounded px-3 py-2 transition-colors cursor-pointer"
           style={{ color: 'var(--color-text-secondary)' }}
+          onClick={() => openModal('userProfile', r.targetUserId)}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'var(--color-hover)'
             e.currentTarget.style.color = 'var(--color-text-primary)'

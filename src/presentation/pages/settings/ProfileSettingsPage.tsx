@@ -1,10 +1,11 @@
-// Profile settings page — display name, bio, avatar
+// Profile settings page — display name, bio, avatar, banner
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UpdateProfileSchema, type UpdateProfileData } from '@/presentation/dto/user.dto'
 import { useUpdateMe } from '@/application/user/useUpdateMe'
 import { useGetMe } from '@/application/auth/useGetMe'
+import { useUIStore } from '@/state/uiStore'
 import { UserAvatar } from '@/presentation/components/user/UserAvatar'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
 import { toast } from 'sonner'
@@ -12,6 +13,7 @@ import { toast } from 'sonner'
 export default function ProfileSettingsPage() {
   const { data: user } = useGetMe()
   const updateMe = useUpdateMe()
+  const { openModal } = useUIStore()
 
   const {
     register,
@@ -23,6 +25,7 @@ export default function ProfileSettingsPage() {
       display_name: user?.displayName,
       bio: user?.bio ?? undefined,
       avatar_url: user?.avatarUrl ?? undefined,
+      banner_url: user?.bannerUrl ?? undefined,
     },
   })
 
@@ -134,6 +137,56 @@ export default function ProfileSettingsPage() {
           </p>
         </div>
 
+        <div>
+          <label
+            className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            Avatar URL
+          </label>
+          <input
+            type="url"
+            placeholder="https://example.com/avatar.png"
+            className="w-full rounded px-3 py-2 text-sm outline-none"
+            style={{
+              background: 'var(--color-input-bg)',
+              color: 'var(--color-text-primary)',
+              border: errors.avatar_url ? '1px solid var(--color-danger)' : '1px solid transparent',
+            }}
+            {...register('avatar_url')}
+          />
+          {errors.avatar_url && (
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-danger)' }}>
+              {errors.avatar_url.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label
+            className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            Banner URL
+          </label>
+          <input
+            type="url"
+            placeholder="https://example.com/banner.png"
+            className="w-full rounded px-3 py-2 text-sm outline-none"
+            style={{
+              background: 'var(--color-input-bg)',
+              color: 'var(--color-text-primary)',
+              border: errors.banner_url ? '1px solid var(--color-danger)' : '1px solid transparent',
+            }}
+            {...register('banner_url')}
+          />
+          {errors.banner_url && (
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-danger)' }}>
+              {errors.banner_url.message}
+            </p>
+          )}
+        </div>
+
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
@@ -145,6 +198,33 @@ export default function ProfileSettingsPage() {
           </button>
         </div>
       </form>
+
+      {/* Custom status shortcut */}
+      <div
+        className="mt-6 rounded-lg p-4"
+        style={{ background: 'var(--color-surface-raised)' }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              Custom Status
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
+              {user.customStatus?.text
+                ? `${user.customStatus.emoji ? user.customStatus.emoji + ' ' : ''}${user.customStatus.text}`
+                : 'No custom status set.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => openModal('customStatus')}
+            className="rounded px-3 py-1.5 text-xs font-semibold"
+            style={{ background: 'var(--color-hover)', color: 'var(--color-text-primary)' }}
+          >
+            Edit
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

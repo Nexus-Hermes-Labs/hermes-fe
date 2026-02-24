@@ -2,6 +2,7 @@
 
 import { useGetMembers } from '@/application/guild/useGetMembers'
 import { useGetRoles } from '@/application/guild/useGetRoles'
+import { useUIStore } from '@/state/uiStore'
 import { UserAvatar } from '@/presentation/components/user/UserAvatar'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
 import { rgbIntToHex } from '@/lib/permissions'
@@ -25,6 +26,7 @@ function getRoleColor(member: GuildMember, roles: GuildRole[]): string | undefin
 export function MemberList({ guildId }: MemberListProps) {
   const { data: members, isLoading: loadingMembers } = useGetMembers(guildId)
   const { data: roles } = useGetRoles(guildId)
+  const { openModal } = useUIStore()
 
   if (loadingMembers) {
     return (
@@ -49,6 +51,7 @@ export function MemberList({ guildId }: MemberListProps) {
       <div
         key={member.userId}
         className="flex items-center gap-2 rounded px-2 py-1.5 mx-1 cursor-pointer transition-colors"
+        onClick={() => openModal('userProfile', member.userId)}
         onMouseEnter={(e) => {
           e.currentTarget.style.background = 'var(--color-hover)'
         }}

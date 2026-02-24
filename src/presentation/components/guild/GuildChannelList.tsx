@@ -31,7 +31,8 @@ function ChannelItem({ channel, isActive }: ChannelItemProps) {
 
   return (
     <Link
-      to={`/channels/${activeGuildId}/${channel.channelId}`}
+      to="/channels/$guildId/$channelId"
+      params={{ guildId: activeGuildId, channelId: channel.channelId }}
       onClick={() => setActiveChannel(channel.channelId)}
       className={cn(
         'flex items-center gap-2 rounded px-2 py-1 text-sm transition-colors mx-1',

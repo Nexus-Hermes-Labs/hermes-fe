@@ -5,7 +5,7 @@ import { ChannelNameSchema, ChannelTypeSchema, ChannelDescriptionSchema } from '
 
 export const CreateChannelSchema = z.object({
   name: ChannelNameSchema,
-  channel_type: ChannelTypeSchema.default('text'),
+  channel_type: ChannelTypeSchema.optional(),
   description: ChannelDescriptionSchema,
   parent_id: z.string().uuid('Parent ID must be a valid UUID').optional(),
   position: z.number().int().min(0).optional(),

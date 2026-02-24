@@ -8,12 +8,30 @@ import { GuildChannelList } from '@/presentation/components/guild/GuildChannelLi
 import { UserPanel } from '@/presentation/components/user/UserPanel'
 import { MemberList } from '@/presentation/components/guild/MemberList'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
+import { CreateGuildModal } from '@/presentation/components/guild/CreateGuildModal'
+import { GuildSettingsModal } from '@/presentation/components/guild/GuildSettingsModal'
+import { InviteModal } from '@/presentation/components/guild/InviteModal'
+import { SearchModal } from '@/presentation/components/shared/SearchModal'
+import { UserProfileModal } from '@/presentation/components/user/UserProfileModal'
+import { JoinGuildModal } from '@/presentation/components/guild/JoinGuildModal'
+import { CustomStatusModal } from '@/presentation/components/user/CustomStatusModal'
 import { useGetMe } from '@/application/auth/useGetMe'
 import { useUIStore } from '@/state/uiStore'
 
 export function AppLayout() {
   useGetMe() // Bootstrap: hydrate auth store from API
-  const { activeGuildId } = useUIStore()
+  const { activeGuildId, openModal } = useUIStore()
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        openModal('search')
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [openModal])
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--color-content-area)' }}>
@@ -49,6 +67,15 @@ export function AppLayout() {
           </div>
         )}
       </div>
+
+      {/* Global modals */}
+      <CreateGuildModal />
+      <GuildSettingsModal />
+      {activeGuildId && <InviteModal guildId={activeGuildId} />}
+      <SearchModal />
+      <UserProfileModal />
+      <JoinGuildModal />
+      <CustomStatusModal />
     </div>
   )
 }
