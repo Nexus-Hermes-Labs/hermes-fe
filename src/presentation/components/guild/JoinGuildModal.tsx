@@ -6,6 +6,7 @@ import { X } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { useUIStore } from '@/state/uiStore'
 import { useGetInviteByCode } from '@/application/guild/useGetInviteByCode'
+import { useGetGuild } from '@/application/guild/useGetGuild'
 import { useJoinByCode } from '@/application/guild/useJoinByCode'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
 
@@ -27,6 +28,7 @@ export function JoinGuildModal() {
   }, [isOpen, prefillCode])
 
   const { data: invite, isLoading: inviteLoading, isError: inviteError } = useGetInviteByCode(code)
+  const { data: guild } = useGetGuild(invite?.guildId ?? null)
   const joinByCode = useJoinByCode()
 
   const handleClose = () => closeModal('joinGuild')
@@ -120,28 +122,39 @@ export function JoinGuildModal() {
 
           {showPreview && (
             <div
-              className="rounded p-3"
+              className="flex items-center gap-3 rounded p-3"
               style={{ background: 'var(--color-input-bg)' }}
             >
-              <p
-                className="text-xs font-semibold uppercase tracking-wide mb-1"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                You are joining
-              </p>
-              <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                {invite.code}
-              </p>
-              {invite.expiresAt && (
-                <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                  Expires {new Date(invite.expiresAt).toLocaleDateString()}
-                </p>
+              {guild?.iconUrl ? (
+                <img
+                  src={guild.iconUrl}
+                  alt={guild.name}
+                  className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+                  style={{ background: 'var(--color-accent)' }}
+                >
+                  {(guild?.name ?? invite.code).slice(0, 2).toUpperCase()}
+                </div>
               )}
-              {invite.maxUses !== null && (
-                <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                  {invite.uses} / {invite.maxUses} uses
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-xs font-semibold uppercase tracking-wide mb-0.5"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  You are joining
                 </p>
-              )}
+                <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
+                  {guild?.name ?? invite.code}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  {guild?.memberCount != null ? `${guild.memberCount} members` : ''}
+                  {invite.maxUses != null ? ` · ${invite.uses}/${invite.maxUses} uses` : ''}
+                  {invite.expiresAt ? ` · expires ${new Date(invite.expiresAt).toLocaleDateString()}` : ''}
+                </p>
+              </div>
             </div>
           )}
 

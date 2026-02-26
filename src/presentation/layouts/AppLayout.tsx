@@ -16,10 +16,12 @@ import { UserProfileModal } from '@/presentation/components/user/UserProfileModa
 import { JoinGuildModal } from '@/presentation/components/guild/JoinGuildModal'
 import { CustomStatusModal } from '@/presentation/components/user/CustomStatusModal'
 import { useGetMe } from '@/application/auth/useGetMe'
+import { useGetMyGuilds } from '@/application/guild/useGetMyGuilds'
 import { useUIStore } from '@/state/uiStore'
 
 export function AppLayout() {
-  useGetMe() // Bootstrap: hydrate auth store from API
+  useGetMe()       // Bootstrap: hydrate auth store from API
+  useGetMyGuilds() // Bootstrap: populate guild sidebar
   const { activeGuildId, openModal } = useUIStore()
 
   useEffect(() => {

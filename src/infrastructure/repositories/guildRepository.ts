@@ -27,6 +27,11 @@ interface RawGuildListResponse {
   offset: number
 }
 
+// POST /guilds returns the guild + ID of the default #general channel
+interface RawCreateGuildResponse extends RawGuild {
+  first_channel_id: string
+}
+
 interface RawMember {
   guild_id: string
   user_id: string
@@ -185,9 +190,15 @@ function mapInvite(raw: RawInvite): GuildInvite {
 
 // ── Repository ────────────────────────────────────────────────────────────────
 export const guildRepository = {
-  async create(dto: CreateGuildDto): Promise<Guild> {
-    const { data } = await httpClient.post<RawGuild>('/guilds', dto)
-    return mapGuild(data)
+  // Backend: GET /guilds/@me — guilds the current user is a member of
+  async getMyGuilds(): Promise<Guild[]> {
+    const { data } = await httpClient.get<RawGuildListResponse>('/guilds/@me')
+    return data.guilds.map(mapGuild)
+  },
+
+  async create(dto: CreateGuildDto): Promise<{ guild: Guild; firstChannelId: string }> {
+    const { data } = await httpClient.post<RawCreateGuildResponse>('/guilds', dto)
+    return { guild: mapGuild(data), firstChannelId: data.first_channel_id }
   },
 
   async getById(guildId: string): Promise<Guild> {
