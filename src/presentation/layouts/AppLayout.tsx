@@ -18,11 +18,19 @@ import { CustomStatusModal } from '@/presentation/components/user/CustomStatusMo
 import { useGetMe } from '@/application/auth/useGetMe'
 import { useGetMyGuilds } from '@/application/guild/useGetMyGuilds'
 import { useUIStore } from '@/state/uiStore'
+import { useWsStore } from '@/state/wsStore'
 
 export function AppLayout() {
   useGetMe()       // Bootstrap: hydrate auth store from API
   useGetMyGuilds() // Bootstrap: populate guild sidebar
   const { activeGuildId, openModal } = useUIStore()
+  const { connect, disconnect } = useWsStore()
+
+  // Open WS connection when the authenticated layout mounts; close on unmount
+  useEffect(() => {
+    connect()
+    return () => { disconnect() }
+  }, [connect, disconnect])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

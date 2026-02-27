@@ -10,6 +10,7 @@ import { useEditMessage } from '@/application/message/useEditMessage'
 import { useDeleteMessage } from '@/application/message/useDeleteMessage'
 import { useUIStore } from '@/state/uiStore'
 import { useAuthStore } from '@/state/authStore'
+import { useWsStore } from '@/state/wsStore'
 import { MessageList } from '@/presentation/components/message/MessageList'
 import { MessageInput } from '@/presentation/components/message/MessageInput'
 import type { Message } from '@/domain/message/entities'
@@ -22,13 +23,16 @@ interface DmConversationPageProps {
 export default function DmConversationPage({ conversationId }: DmConversationPageProps) {
   const { setActiveGuild, setActiveChannel } = useUIStore()
   const { user } = useAuthStore()
+  const { subscribe, unsubscribe } = useWsStore()
   const [replyTo, setReplyTo] = useState<Message | null>(null)
 
   useEffect(() => {
     setActiveGuild(null)
     setActiveChannel(null)
     setReplyTo(null)
-  }, [conversationId, setActiveGuild, setActiveChannel])
+    subscribe(conversationId)
+    return () => { unsubscribe(conversationId) }
+  }, [conversationId, setActiveGuild, setActiveChannel, subscribe, unsubscribe])
 
   const { data: conversation } = useGetConversation(conversationId)
   const { data, isLoading } = useGetConversationMessages(conversationId)

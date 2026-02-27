@@ -10,6 +10,7 @@ import { useSendChannelMessage } from '@/application/message/useSendChannelMessa
 import { useEditMessage } from '@/application/message/useEditMessage'
 import { useDeleteMessage } from '@/application/message/useDeleteMessage'
 import { useUIStore } from '@/state/uiStore'
+import { useWsStore } from '@/state/wsStore'
 import { MessageList } from '@/presentation/components/message/MessageList'
 import { MessageInput } from '@/presentation/components/message/MessageInput'
 import type { Message } from '@/domain/message/entities'
@@ -19,13 +20,17 @@ export default function ChannelPage() {
   const params = useParams({ strict: false }) as { guildId: string; channelId: string }
   const { data: channels } = useListChannels(params.guildId)
   const { setActiveGuild, setActiveChannel } = useUIStore()
+  const { subscribe, unsubscribe } = useWsStore()
   const [replyTo, setReplyTo] = useState<Message | null>(null)
 
   useEffect(() => {
     setActiveGuild(params.guildId)
     setActiveChannel(params.channelId)
     setReplyTo(null)
-  }, [params.guildId, params.channelId, setActiveGuild, setActiveChannel])
+    // Subscribe to real-time events for this channel
+    subscribe(params.channelId)
+    return () => { unsubscribe(params.channelId) }
+  }, [params.guildId, params.channelId, setActiveGuild, setActiveChannel, subscribe, unsubscribe])
 
   const channel = channels?.find((c) => c.channelId === params.channelId)
 
