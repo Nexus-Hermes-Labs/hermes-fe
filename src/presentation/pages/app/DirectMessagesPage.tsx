@@ -1,12 +1,20 @@
 // DMs + Friends page — /channels/@me
 
-import { useState } from 'react'
-import { Users, UserPlus, Clock, Ban, CheckCircle2, XCircle, UserX, Send } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import {
+  Users,
+  UserPlus,
+  Clock,
+  Ban,
+  CheckCircle2,
+  XCircle,
+  UserX,
+  Send,
+} from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { FriendsList } from '@/presentation/components/user/FriendsList'
 import { UserAvatar } from '@/presentation/components/user/UserAvatar'
 import { UserStatusBadge } from '@/presentation/components/user/UserStatusBadge'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
@@ -141,16 +149,13 @@ function OnlineTab() {
   if (isLoading) return <div className="flex justify-center p-8"><LoadingSpinner /></div>
 
   const online = (relationships ?? []).filter(
-    (r) => r.relationshipType === 'friend' && ONLINE_STATUSES.includes(r.targetUser.status as UserStatus),
+    (r) =>
+      r.relationshipType === 'friend' &&
+      ONLINE_STATUSES.includes(r.targetUser.status as UserStatus),
   )
 
   if (online.length === 0) {
-    return (
-      <EmptyState
-        title="No one's around"
-        description="All your friends are currently offline."
-      />
-    )
+    return <EmptyState title="No one's around" description="All your friends are currently offline." />
   }
 
   return (
@@ -189,12 +194,7 @@ function AllFriendsTab() {
   const friends = (relationships ?? []).filter((r) => r.relationshipType === 'friend')
 
   if (friends.length === 0) {
-    return (
-      <EmptyState
-        title="No friends yet"
-        description="Add friends by their username."
-      />
-    )
+    return <EmptyState title="No friends yet" description="Add friends by their username." />
   }
 
   return (
@@ -234,9 +234,8 @@ function PendingTab() {
 
   const inList = incoming ?? []
   const outList = outgoing ?? []
-  const total = inList.length + outList.length
 
-  if (total === 0) {
+  if (inList.length === 0 && outList.length === 0) {
     return (
       <EmptyState
         title="No pending requests"
@@ -323,12 +322,7 @@ function BlockedTab() {
   const list = blocked ?? []
 
   if (list.length === 0) {
-    return (
-      <EmptyState
-        title="No blocked users"
-        description="Users you block will appear here."
-      />
-    )
+    return <EmptyState title="No blocked users" description="Users you block will appear here." />
   }
 
   return (
@@ -367,9 +361,6 @@ function AddFriendTab() {
   } = useForm<AddFriendData>({ resolver: zodResolver(AddFriendSchema) })
 
   const onSubmit = (data: AddFriendData) => {
-    // Backend takes userId, but we have username — use getByUsername first
-    // The sendFriendRequest hook expects a userId, so we send username to a lookup
-    // For now we pass the username directly and show the API error if any
     sendRequest.mutate(data.username, {
       onSuccess: () => {
         toast.success(`Friend request sent to ${data.username}!`)
@@ -391,7 +382,6 @@ function AddFriendTab() {
       <p className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
         You can add friends by their username.
       </p>
-
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div
           className="flex items-center gap-2 rounded-lg px-4 py-2"
@@ -437,88 +427,81 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 
 export default function DirectMessagesPage() {
   const [activeTab, setActiveTab] = useState<Tab>('online')
+  const { setActiveGuild, setActiveChannel } = useUIStore()
   const { data: incoming } = useGetIncomingRequests()
   const pendingCount = incoming?.length ?? 0
 
+  // Clear guild/channel selection when in DM hub
+  useEffect(() => {
+    setActiveGuild(null)
+    setActiveChannel(null)
+  }, [setActiveGuild, setActiveChannel])
+
   return (
-    <div className="flex h-full">
-      {/* DM sidebar */}
+    <div
+      className="flex h-full flex-col overflow-hidden"
+      style={{ background: 'var(--color-content-area)' }}
+    >
+      {/* Header */}
       <div
-        className="w-60 flex-shrink-0 flex flex-col overflow-y-auto py-3"
-        style={{ background: 'var(--color-channel-sidebar)', borderRight: '1px solid var(--color-border)' }}
+        className="flex h-12 flex-shrink-0 items-center gap-4 px-4 shadow-sm"
+        style={{ borderBottom: '1px solid var(--color-border)' }}
       >
-        <p
-          className="px-4 pb-2 text-xs font-semibold uppercase tracking-wide"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          Direct Messages
-        </p>
-        <FriendsList />
+        <div className="flex items-center gap-2">
+          <Users size={20} style={{ color: 'var(--color-text-secondary)' }} />
+          <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+            Friends
+          </span>
+        </div>
+
+        <div className="mx-2 h-5 w-px" style={{ background: 'var(--color-border)' }} />
+
+        <nav className="flex items-center gap-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'flex items-center gap-1.5 rounded px-3 py-1 text-sm font-medium transition-colors relative',
+              )}
+              style={{
+                background: activeTab === tab.id ? 'var(--color-hover)' : 'transparent',
+                color:
+                  activeTab === tab.id
+                    ? 'var(--color-text-primary)'
+                    : 'var(--color-text-secondary)',
+              }}
+            >
+              {tab.icon}
+              {tab.label}
+              {tab.id === 'pending' && pendingCount > 0 && (
+                <span
+                  className="ml-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold text-white"
+                  style={{ background: 'var(--color-danger)', fontSize: '10px' }}
+                >
+                  {pendingCount > 9 ? '9+' : pendingCount}
+                </span>
+              )}
+              {tab.id === 'add' && (
+                <span
+                  className="ml-0.5 text-xs px-1 rounded font-bold"
+                  style={{ background: 'var(--color-success)', color: '#fff', fontSize: '9px' }}
+                >
+                  NEW
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden" style={{ background: 'var(--color-content-area)' }}>
-        {/* Header */}
-        <div
-          className="flex h-12 flex-shrink-0 items-center gap-4 px-4 shadow-sm"
-          style={{ borderBottom: '1px solid var(--color-border)' }}
-        >
-          <div className="flex items-center gap-2">
-            <Users size={20} style={{ color: 'var(--color-text-secondary)' }} />
-            <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-              Friends
-            </span>
-          </div>
-
-          {/* Tab bar */}
-          <div
-            className="mx-2 h-5 w-px"
-            style={{ background: 'var(--color-border)' }}
-          />
-          <nav className="flex items-center gap-1">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  'flex items-center gap-1.5 rounded px-3 py-1 text-sm font-medium transition-colors relative',
-                )}
-                style={{
-                  background: activeTab === tab.id ? 'var(--color-hover)' : 'transparent',
-                  color: activeTab === tab.id ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                }}
-              >
-                {tab.icon}
-                {tab.label}
-                {tab.id === 'pending' && pendingCount > 0 && (
-                  <span
-                    className="ml-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold text-white"
-                    style={{ background: 'var(--color-danger)', fontSize: '10px' }}
-                  >
-                    {pendingCount > 9 ? '9+' : pendingCount}
-                  </span>
-                )}
-                {tab.id === 'add' && (
-                  <span
-                    className="ml-0.5 text-xs px-1 rounded font-bold"
-                    style={{ background: 'var(--color-success)', color: '#fff', fontSize: '9px' }}
-                  >
-                    NEW
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab content */}
-        <div className="flex-1 overflow-y-auto">
-          {activeTab === 'online' && <OnlineTab />}
-          {activeTab === 'all' && <AllFriendsTab />}
-          {activeTab === 'pending' && <PendingTab />}
-          {activeTab === 'blocked' && <BlockedTab />}
-          {activeTab === 'add' && <AddFriendTab />}
-        </div>
+      {/* Tab content */}
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === 'online' && <OnlineTab />}
+        {activeTab === 'all' && <AllFriendsTab />}
+        {activeTab === 'pending' && <PendingTab />}
+        {activeTab === 'blocked' && <BlockedTab />}
+        {activeTab === 'add' && <AddFriendTab />}
       </div>
     </div>
   )

@@ -1,12 +1,15 @@
-// Second panel: channels within a guild, organized by category
+// Second panel: channels within a guild (or DM list when no guild is active)
 
-import { ChevronDown, Plus } from 'lucide-react'
+import { ChevronDown, Plus, Users, MessageSquare } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Hash, Volume2, Megaphone } from 'lucide-react'
 import { useListChannels } from '@/application/channel/useListChannels'
+import { useGetMyConversations } from '@/application/conversation/useGetMyConversations'
 import { useUIStore } from '@/state/uiStore'
 import { useGuildStore } from '@/state/guildStore'
+import { useConversationStore } from '@/state/conversationStore'
+import { useAuthStore } from '@/state/authStore'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
 import { cn } from '@/lib/cn'
 import type { Channel } from '@/domain/channel/entities'
@@ -63,6 +66,88 @@ function ChannelItem({ channel, isActive }: ChannelItemProps) {
   )
 }
 
+// ── DM mode: shown when no guild is active ─────────────────────────────────────
+
+function DmList() {
+  const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const { getOrderedConversations } = useConversationStore()
+  const { isLoading } = useGetMyConversations()
+  const conversations = getOrderedConversations()
+
+  const getConversationName = (conv: ReturnType<typeof getOrderedConversations>[number]) => {
+    if (conv.conversationType === 'group_dm') return conv.name ?? 'Group DM'
+    const other = conv.members.find((m) => m.userId !== user?.userId)
+    return other ? `User ${other.userId.slice(0, 8)}` : 'Direct Message'
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Friends nav */}
+      <div className="px-2 pt-3 pb-1">
+        <Link
+          to="/channels/@me"
+          className="flex items-center gap-2 rounded px-2 py-1.5 text-sm font-medium w-full transition-colors"
+          style={{ color: 'var(--color-text-secondary)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--color-hover)'
+            e.currentTarget.style.color = 'var(--color-text-primary)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = ''
+            e.currentTarget.style.color = 'var(--color-text-secondary)'
+          }}
+        >
+          <Users size={16} />
+          Friends
+        </Link>
+      </div>
+
+      {/* DM conversations */}
+      <div
+        className="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide"
+        style={{ color: 'var(--color-text-muted)' }}
+      >
+        Direct Messages
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center p-3">
+          <LoadingSpinner size="sm" />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto space-y-0.5 px-2">
+          {conversations.map((conv) => (
+            <button
+              key={conv.id}
+              onClick={() => void navigate({ to: '/channels/@me/$conversationId', params: { conversationId: conv.id } })}
+              className="flex items-center gap-2 rounded px-2 py-1.5 text-sm w-full text-left transition-colors"
+              style={{ color: 'var(--color-text-secondary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-hover)'
+                e.currentTarget.style.color = 'var(--color-text-primary)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = ''
+                e.currentTarget.style.color = 'var(--color-text-secondary)'
+              }}
+            >
+              {conv.conversationType === 'group_dm' ? (
+                <Users size={16} className="flex-shrink-0" />
+              ) : (
+                <MessageSquare size={16} className="flex-shrink-0" />
+              )}
+              <span className="truncate">{getConversationName(conv)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Guild channel list ─────────────────────────────────────────────────────────
+
 export function GuildChannelList() {
   const { activeGuildId, activeChannelId } = useUIStore()
   const { getGuild } = useGuildStore()
@@ -72,14 +157,7 @@ export function GuildChannelList() {
   const guild = activeGuildId ? getGuild(activeGuildId) : null
 
   if (!activeGuildId) {
-    return (
-      <div className="px-3 py-4">
-        <p className="text-xs font-semibold uppercase tracking-wide"
-           style={{ color: 'var(--color-text-secondary)' }}>
-          Direct Messages
-        </p>
-      </div>
-    )
+    return <DmList />
   }
 
   if (isLoading) {
@@ -122,12 +200,10 @@ export function GuildChannelList() {
 
       {/* Channels */}
       <div className="py-2 space-y-0.5">
-        {/* Uncategorized channels */}
         {uncategorized.map((ch) => (
           <ChannelItem key={ch.channelId} channel={ch} isActive={activeChannelId === ch.channelId} />
         ))}
 
-        {/* Categories + their children */}
         {categories.map((cat) => {
           const isCollapsed = collapsedCategories.has(cat.channelId)
           const children = childrenOf(cat.channelId)

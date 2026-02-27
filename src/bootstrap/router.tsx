@@ -18,6 +18,9 @@ const RegisterPage = lazy(() => import('@/presentation/pages/auth/RegisterPage')
 const DirectMessagesPage = lazy(
   () => import('@/presentation/pages/app/DirectMessagesPage'),
 )
+const DmConversationPage = lazy(
+  () => import('@/presentation/pages/app/DmConversationPage'),
+)
 const ChannelPage = lazy(() => import('@/presentation/pages/app/ChannelPage'))
 const JoinByCodePage = lazy(() => import('@/presentation/pages/app/JoinByCodePage'))
 const ProfileSettingsPage = lazy(
@@ -93,12 +96,24 @@ const appLayoutRoute = createRoute({
   },
 })
 
+// /channels/@me — friends hub
 const channelsMeRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/channels/@me',
   component: DirectMessagesPage,
 })
 
+// /channels/@me/:conversationId — DM or group DM chat
+const dmConversationRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/channels/@me/$conversationId',
+  component: () => {
+    const { conversationId } = dmConversationRoute.useParams()
+    return <DmConversationPage conversationId={conversationId} />
+  },
+})
+
+// /channels/:guildId — redirects to first channel
 const guildRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/channels/$guildId',
@@ -110,6 +125,7 @@ const guildRoute = createRoute({
   },
 })
 
+// /channels/:guildId/:channelId — guild text channel
 const channelRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/channels/$guildId/$channelId',
@@ -159,7 +175,13 @@ const privacySettingsRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authLayoutRoute.addChildren([loginRoute, registerRoute]),
-  appLayoutRoute.addChildren([channelsMeRoute, guildRoute, channelRoute, joinByCodeRoute]),
+  appLayoutRoute.addChildren([
+    channelsMeRoute,
+    dmConversationRoute,
+    guildRoute,
+    channelRoute,
+    joinByCodeRoute,
+  ]),
   settingsLayoutRoute.addChildren([
     profileSettingsRoute,
     accountSettingsRoute,
