@@ -226,21 +226,18 @@ export const userRepository = {
   },
 
   // Backend: POST /api/v1/users/@me/relationships/request  body: { target_user_id, message? }
-  async sendFriendRequest(targetUserId: string, message?: string): Promise<UserRelationship> {
-    const { data } = await httpClient.post<RawRelationship>('/users/@me/relationships/request', {
+  async sendFriendRequest(targetUserId: string, message?: string): Promise<void> {
+    await httpClient.post('/users/@me/relationships/request', {
       target_user_id: targetUserId,
       ...(message ? { message } : {}),
     })
-    return mapRelationship(data)
   },
 
   // Backend: PUT /api/v1/users/@me/relationships/request/accept  body: { target_user_id }
-  async acceptFriendRequest(targetUserId: string): Promise<UserRelationship> {
-    const { data } = await httpClient.put<RawRelationship>(
-      '/users/@me/relationships/request/accept',
-      { target_user_id: targetUserId },
-    )
-    return mapRelationship(data)
+  async acceptFriendRequest(targetUserId: string): Promise<void> {
+    await httpClient.put('/users/@me/relationships/request/accept', {
+      target_user_id: targetUserId,
+    })
   },
 
   // Backend: PUT /api/v1/users/@me/relationships/request/decline  body: { target_user_id }
@@ -251,11 +248,10 @@ export const userRepository = {
   },
 
   // Backend: POST /api/v1/users/@me/relationships/block  body: { target_user_id }
-  async blockUser(targetUserId: string): Promise<UserRelationship> {
-    const { data } = await httpClient.post<RawRelationship>('/users/@me/relationships/block', {
+  async blockUser(targetUserId: string): Promise<void> {
+    await httpClient.post('/users/@me/relationships/block', {
       target_user_id: targetUserId,
     })
-    return mapRelationship(data)
   },
 
   // Backend: DELETE /api/v1/users/@me/relationships/friend/:target_user_id
@@ -448,21 +444,17 @@ export const userRepository = {
   },
 
   // Backend: POST /users/:user_id/relationships/request  body: { target_user_id }
-  async adminSendFriendRequest(userId: string, targetUserId: string): Promise<UserRelationship> {
-    const { data } = await httpClient.post<RawRelationship>(
-      `/users/${userId}/relationships/request`,
-      { target_user_id: targetUserId },
-    )
-    return mapRelationship(data)
+  async adminSendFriendRequest(userId: string, targetUserId: string): Promise<void> {
+    await httpClient.post(`/users/${userId}/relationships/request`, {
+      target_user_id: targetUserId,
+    })
   },
 
   // Backend: PUT /users/:user_id/relationships/request/accept  body: { target_user_id }
-  async adminAcceptFriendRequest(userId: string, targetUserId: string): Promise<UserRelationship> {
-    const { data } = await httpClient.put<RawRelationship>(
-      `/users/${userId}/relationships/request/accept`,
-      { target_user_id: targetUserId },
-    )
-    return mapRelationship(data)
+  async adminAcceptFriendRequest(userId: string, targetUserId: string): Promise<void> {
+    await httpClient.put(`/users/${userId}/relationships/request/accept`, {
+      target_user_id: targetUserId,
+    })
   },
 
   // Backend: PUT /users/:user_id/relationships/request/decline  body: { target_user_id }
@@ -478,12 +470,10 @@ export const userRepository = {
   },
 
   // Backend: POST /users/:user_id/relationships/block  body: { target_user_id }
-  async adminBlockUser(userId: string, targetUserId: string): Promise<UserRelationship> {
-    const { data } = await httpClient.post<RawRelationship>(
-      `/users/${userId}/relationships/block`,
-      { target_user_id: targetUserId },
-    )
-    return mapRelationship(data)
+  async adminBlockUser(userId: string, targetUserId: string): Promise<void> {
+    await httpClient.post(`/users/${userId}/relationships/block`, {
+      target_user_id: targetUserId,
+    })
   },
 
   // Backend: DELETE /users/:user_id/relationships/block/:target_user_id
