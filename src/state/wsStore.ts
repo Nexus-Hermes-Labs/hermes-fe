@@ -4,8 +4,8 @@
 import { create } from 'zustand'
 import { wsClient, type WsStatus } from '@/infrastructure/websocket/wsClient'
 import { wsEventBus } from '@/infrastructure/websocket/wsEventBus'
-import { useMessageStore } from './messageStore'
-import type { Message } from '@/domain/message/entities'
+import { queryClient } from '@/bootstrap/queryClient'
+import type { Message, MessageList } from '@/domain/message/entities'
 
 interface WsState {
   status: WsStatus
@@ -48,17 +48,6 @@ interface MessageDeletePayload {
   user_id: string
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function resolveKey(
-  channelId: string | null,
-  conversationId: string | null,
-): `channel:${string}` | `conversation:${string}` | null {
-  if (channelId) return `channel:${channelId}`
-  if (conversationId) return `conversation:${conversationId}`
-  return null
-}
-
 // ── Store ─────────────────────────────────────────────────────────────────────
 
 export const useWsStore = create<WsState>()((set, get) => ({
@@ -96,6 +85,19 @@ export const useWsStore = create<WsState>()((set, get) => ({
   },
 }))
 
+// ── TanStack Query cache helpers ──────────────────────────────────────────────
+
+// Build the partial query key used for setQueriesData partial matching.
+// Matches all paginated variants of the message list for a given context.
+function messageQueryKey(
+  channelId: string | null,
+  conversationId: string | null,
+): unknown[] | null {
+  if (channelId) return ['channels', channelId, 'messages']
+  if (conversationId) return ['conversations', conversationId, 'messages']
+  return null
+}
+
 // ── Side-effect wiring (after store is defined) ───────────────────────────────
 
 // Forward WsClient status changes into the store
@@ -103,11 +105,14 @@ wsClient.onStatusChange((status) => {
   useWsStore.setState({ status })
 })
 
-// Route NATS events from the WS stream into the message store
+// Route NATS events from the WS stream into the TanStack Query cache so that
+// all components reading from useGetChannelMessages / useGetConversationMessages
+// receive live updates without a full refetch.
 wsEventBus.on<MessageCreatePayload>('MESSAGE_CREATE', ({ data }) => {
   if (!data) return
-  const key = resolveKey(data.channel_id, data.conversation_id)
-  if (!key) return
+  const qk = messageQueryKey(data.channel_id, data.conversation_id)
+  if (!qk) return
+
   const msg: Message = {
     id: data.message_id,
     channelId: data.channel_id,
@@ -121,28 +126,50 @@ wsEventBus.on<MessageCreatePayload>('MESSAGE_CREATE', ({ data }) => {
     createdAt: data.created_at,
     updatedAt: data.created_at,
   }
-  useMessageStore.getState().appendMessage(key, msg)
+
+  // Prepend to every cached page for this context (handles all limit/before variants).
+  queryClient.setQueriesData<MessageList>(
+    { queryKey: qk },
+    (old) => {
+      if (!old) return old
+      // Deduplicate: skip if the message is already present (e.g. from the sender's own optimistic path)
+      if (old.messages.some((m) => m.id === msg.id)) return old
+      return { ...old, messages: [msg, ...old.messages] }
+    },
+  )
 })
 
 wsEventBus.on<MessageUpdatePayload>('MESSAGE_UPDATE', ({ data }) => {
   if (!data) return
-  const key = resolveKey(data.channel_id, data.conversation_id)
-  if (!key) return
-  const store = useMessageStore.getState()
-  const page = store.getPage(key)
-  const existing = page?.messages.find((m) => m.id === data.message_id)
-  if (!existing) return
-  store.updateMessage(key, {
-    ...existing,
-    content: data.content,
-    editedAt: data.edited_at,
-    updatedAt: data.edited_at,
-  })
+  const qk = messageQueryKey(data.channel_id, data.conversation_id)
+  if (!qk) return
+
+  queryClient.setQueriesData<MessageList>(
+    { queryKey: qk },
+    (old) => {
+      if (!old) return old
+      return {
+        ...old,
+        messages: old.messages.map((m) =>
+          m.id === data.message_id
+            ? { ...m, content: data.content, editedAt: data.edited_at, updatedAt: data.edited_at }
+            : m,
+        ),
+      }
+    },
+  )
 })
 
 wsEventBus.on<MessageDeletePayload>('MESSAGE_DELETE', ({ data }) => {
   if (!data) return
-  const key = resolveKey(data.channel_id, data.conversation_id)
-  if (!key) return
-  useMessageStore.getState().removeMessage(key, data.message_id)
+  const qk = messageQueryKey(data.channel_id, data.conversation_id)
+  if (!qk) return
+
+  queryClient.setQueriesData<MessageList>(
+    { queryKey: qk },
+    (old) => {
+      if (!old) return old
+      return { ...old, messages: old.messages.filter((m) => m.id !== data.message_id) }
+    },
+  )
 })
