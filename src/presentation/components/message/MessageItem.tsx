@@ -4,6 +4,7 @@ import { UserAvatar } from '@/presentation/components/user/UserAvatar'
 import { ReactionPanel } from './ReactionPanel'
 import { formatRelativeTime } from '@/lib/formatters'
 import { useAuthStore } from '@/state/authStore'
+import { useGetUser } from '@/application/user/useGetUser'
 import type { Message } from '@/domain/message/entities'
 
 interface MessageItemProps {
@@ -48,6 +49,7 @@ function ActionBtn({
 export function MessageItem({ message, onEdit, onDelete, onReply }: MessageItemProps) {
   const { user } = useAuthStore()
   const isOwn = user?.userId === message.userId
+  const { data: author } = useGetUser(message.userId)
   const [hovered, setHovered] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
@@ -55,7 +57,9 @@ export function MessageItem({ message, onEdit, onDelete, onReply }: MessageItemP
 
   const displayName = isOwn
     ? (user?.displayName ?? 'You')
-    : `User ${message.userId.slice(0, 6)}`
+    : (author?.displayName ?? author?.username ?? `User ${message.userId.slice(0, 6)}`)
+
+  const avatarUrl = isOwn ? (user?.avatarUrl ?? null) : (author?.avatarUrl ?? null)
 
   const handleSaveEdit = () => {
     const trimmed = editContent.trim()
@@ -96,7 +100,7 @@ export function MessageItem({ message, onEdit, onDelete, onReply }: MessageItemP
     >
       {/* Avatar */}
       <div className="flex-shrink-0 mt-0.5">
-        <UserAvatar displayName={displayName} avatarUrl={null} size="md" />
+        <UserAvatar displayName={displayName} avatarUrl={avatarUrl} size="md" />
       </div>
 
       {/* Body */}
