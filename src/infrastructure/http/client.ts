@@ -5,6 +5,7 @@
 //      Uses request-queue pattern to handle concurrent 401s correctly
 
 import axios from 'axios'
+import { deviceId } from '../storage/deviceId'
 import { tokenStorage } from '../storage/tokenStorage'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
@@ -17,13 +18,14 @@ export const httpClient = axios.create({
   timeout: 15_000,
 })
 
-// ── Request interceptor: attach Bearer token ─────────────────────────────────
+// ── Request interceptor: attach Bearer token + device id ─────────────────────
 httpClient.interceptors.request.use(
   (config) => {
     const token = tokenStorage.getAccessToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    config.headers['X-Device-Id'] = deviceId.get()
     return config
   },
   (error) => Promise.reject(error),
@@ -74,10 +76,14 @@ httpClient.interceptors.response.use(
         throw new Error('No refresh token available')
       }
 
-      // Use a plain axios call to avoid interceptor loops
-      const { data } = await axios.post(`${BASE_URL}/api/v1/auth/refresh`, {
-        refresh_token: refreshToken,
-      })
+      // Use a plain axios call to avoid interceptor loops. We still need to
+      // send X-Device-Id manually so the refreshed session stays bound to the
+      // same device row on the backend.
+      const { data } = await axios.post(
+        `${BASE_URL}/api/v1/auth/refresh`,
+        { refresh_token: refreshToken },
+        { headers: { 'X-Device-Id': deviceId.get() } },
+      )
 
       tokenStorage.setTokens(data.access_token, data.refresh_token, data.expires_in)
 
