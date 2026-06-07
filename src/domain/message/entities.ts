@@ -1,6 +1,7 @@
 // Mirrors: messaging-service/src/domain/message/entity.rs
 
 import type { MessageType } from './valueObjects'
+import type { LanguageCode, Translation } from '@/domain/translation/entities'
 
 export interface Message {
   id: string
@@ -8,6 +9,9 @@ export interface Message {
   conversationId: string | null
   userId: string
   content: string
+  originalLanguage?: LanguageCode
+  languageAutoDetected?: boolean
+  translations?: Partial<Record<LanguageCode, Translation>>
   messageType: MessageType
   replyToId: string | null
   isDeleted: boolean

@@ -42,6 +42,24 @@ export interface LoginDto {
   device_name?: string
 }
 
+export interface ForgotPasswordDto {
+  email: string
+}
+
+export interface ResetPasswordDto {
+  token: string
+  new_password: string
+}
+
+export interface ChangePasswordDto {
+  current_password: string
+  new_password: string
+}
+
+interface MessageResponse {
+  message: string
+}
+
 // ── Repository ────────────────────────────────────────────────────────────────
 function mapTokens(raw: RawAuthResponse): AuthTokens {
   return {
@@ -103,5 +121,20 @@ export const authRepository = {
   // Backend: GET /auth/verify-email?token=...
   async verifyEmail(token: string): Promise<void> {
     await httpClient.get('/auth/verify-email', { params: { token } })
+  },
+
+  async forgotPassword(dto: ForgotPasswordDto): Promise<MessageResponse> {
+    const { data } = await httpClient.post<MessageResponse>('/auth/forgot-password', dto)
+    return data
+  },
+
+  async resetPassword(dto: ResetPasswordDto): Promise<MessageResponse> {
+    const { data } = await httpClient.post<MessageResponse>('/auth/reset-password', dto)
+    return data
+  },
+
+  async changePassword(dto: ChangePasswordDto): Promise<MessageResponse> {
+    const { data } = await httpClient.post<MessageResponse>('/auth/change-password', dto)
+    return data
   },
 }

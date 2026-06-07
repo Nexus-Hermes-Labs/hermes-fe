@@ -15,6 +15,12 @@ import { lazy } from 'react'
 
 const LoginPage = lazy(() => import('@/presentation/pages/auth/LoginPage'))
 const RegisterPage = lazy(() => import('@/presentation/pages/auth/RegisterPage'))
+const ForgotPasswordPage = lazy(
+  () => import('@/presentation/pages/auth/ForgotPasswordPage'),
+)
+const ResetPasswordPage = lazy(
+  () => import('@/presentation/pages/auth/ResetPasswordPage'),
+)
 const DirectMessagesPage = lazy(
   () => import('@/presentation/pages/app/DirectMessagesPage'),
 )
@@ -77,6 +83,28 @@ const registerRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: '/register',
   component: RegisterPage,
+  beforeLoad: () => {
+    if (tokenStorage.hasTokens()) {
+      throw redirect({ to: '/channels/@me' })
+    }
+  },
+})
+
+const forgotPasswordRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/forgot-password',
+  component: ForgotPasswordPage,
+  beforeLoad: () => {
+    if (tokenStorage.hasTokens()) {
+      throw redirect({ to: '/channels/@me' })
+    }
+  },
+})
+
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/reset-password',
+  component: ResetPasswordPage,
   beforeLoad: () => {
     if (tokenStorage.hasTokens()) {
       throw redirect({ to: '/channels/@me' })
@@ -174,7 +202,12 @@ const privacySettingsRoute = createRoute({
 // ── Route tree ────────────────────────────────────────────────────────────────
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  authLayoutRoute.addChildren([loginRoute, registerRoute]),
+  authLayoutRoute.addChildren([
+    loginRoute,
+    registerRoute,
+    forgotPasswordRoute,
+    resetPasswordRoute,
+  ]),
   appLayoutRoute.addChildren([
     channelsMeRoute,
     dmConversationRoute,

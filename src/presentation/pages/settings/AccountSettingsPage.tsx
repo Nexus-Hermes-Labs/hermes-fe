@@ -3,9 +3,12 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import axios from 'axios'
 import { useGetMe } from '@/application/auth/useGetMe'
 import { useLogout } from '@/application/auth/useLogout'
+import { useChangePassword } from '@/application/auth/useChangePassword'
 import { useUpdateUsername } from '@/application/user/useUpdateUsername'
+import { ChangePasswordFormSchema, type ChangePasswordFormData } from '@/presentation/dto/auth.dto'
 import { UpdateUsernameSchema, type UpdateUsernameData } from '@/presentation/dto/user.dto'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
 import { toast } from 'sonner'
@@ -152,6 +155,8 @@ export default function AccountSettingsPage() {
         </div>
       </div>
 
+      <ChangePasswordSection />
+
       {/* Danger zone */}
       <div
         className="rounded-lg p-4"
@@ -175,6 +180,124 @@ export default function AccountSettingsPage() {
           {logout.isPending ? <LoadingSpinner size="sm" /> : 'Log Out'}
         </button>
       </div>
+    </div>
+  )
+}
+
+function ChangePasswordSection() {
+  const changePassword = useChangePassword()
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ChangePasswordFormData>({
+    resolver: zodResolver(ChangePasswordFormSchema),
+  })
+
+  const onSubmit = (data: ChangePasswordFormData) => {
+    changePassword.mutate(data, {
+      onSuccess: () => {
+        toast.success('Password changed.')
+        reset()
+      },
+      onError: () => toast.error('Could not change password.'),
+    })
+  }
+
+  const inputStyle = (hasError: boolean) => ({
+    background: 'var(--color-input-bg)',
+    color: 'var(--color-text-primary)',
+    border: hasError ? '1px solid var(--color-danger)' : '1px solid transparent',
+  })
+
+  return (
+    <div
+      className="mb-6 rounded-lg p-4"
+      style={{ background: 'var(--color-surface-raised)' }}
+    >
+      <h2
+        className="mb-1 text-sm font-semibold uppercase tracking-wide"
+        style={{ color: 'var(--color-text-secondary)' }}
+      >
+        Password
+      </h2>
+      <p className="mb-4 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+        New passwords cannot reuse your recent password history.
+      </p>
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
+            Current Password
+          </label>
+          <input
+            type="password"
+            autoComplete="current-password"
+            className="w-full rounded px-3 py-2 text-sm outline-none"
+            style={inputStyle(!!errors.current_password)}
+            {...register('current_password')}
+          />
+          {errors.current_password && (
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-danger)' }}>
+              {errors.current_password.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
+            New Password
+          </label>
+          <input
+            type="password"
+            autoComplete="new-password"
+            className="w-full rounded px-3 py-2 text-sm outline-none"
+            style={inputStyle(!!errors.new_password)}
+            {...register('new_password')}
+          />
+          {errors.new_password && (
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-danger)' }}>
+              {errors.new_password.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
+            Confirm New Password
+          </label>
+          <input
+            type="password"
+            autoComplete="new-password"
+            className="w-full rounded px-3 py-2 text-sm outline-none"
+            style={inputStyle(!!errors.confirmPassword)}
+            {...register('confirmPassword')}
+          />
+          {errors.confirmPassword && (
+            <p className="mt-1 text-xs" style={{ color: 'var(--color-danger)' }}>
+              {errors.confirmPassword.message}
+            </p>
+          )}
+        </div>
+
+        {changePassword.error && (
+          <p className="text-xs" style={{ color: 'var(--color-danger)' }}>
+            {axios.isAxiosError(changePassword.error)
+              ? (changePassword.error.response?.data?.error ?? changePassword.error.message)
+              : 'Could not change password.'}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={changePassword.isPending}
+          className="flex items-center gap-2 rounded px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          style={{ background: 'var(--color-accent)' }}
+        >
+          {changePassword.isPending ? <LoadingSpinner size="sm" /> : 'Change Password'}
+        </button>
+      </form>
     </div>
   )
 }

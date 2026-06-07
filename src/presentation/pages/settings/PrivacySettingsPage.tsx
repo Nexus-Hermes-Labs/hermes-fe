@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { UpdatePrivacySchema, type UpdatePrivacyData } from '@/presentation/dto/user.dto'
 import { useGetPrivacy } from '@/application/user/useGetPrivacy'
 import { useUpdatePrivacy } from '@/application/user/useUpdatePrivacy'
+import { TranslationSettingsSection } from '@/presentation/components/translation/TranslationSettingsSection'
 import { LoadingSpinner } from '@/presentation/components/shared/LoadingSpinner'
 import { toast } from 'sonner'
 
@@ -87,6 +88,10 @@ export default function PrivacySettingsPage() {
       >
         Privacy & Safety
       </h1>
+
+      <div className="mb-6">
+        <TranslationSettingsSection />
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div

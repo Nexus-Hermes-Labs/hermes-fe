@@ -107,6 +107,9 @@ export function RegisterForm() {
             style={inputStyle(!!errors.password)}
             {...register('password')}
           />
+          <p className="mt-1 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            Minimum 8 characters with uppercase, lowercase, and a digit.
+          </p>
         </Field>
 
         <Field label="Confirm Password" required error={errors.confirmPassword?.message}>

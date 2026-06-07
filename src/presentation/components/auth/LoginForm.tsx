@@ -86,6 +86,13 @@ export function LoginForm() {
               {errors.password.message}
             </p>
           )}
+          <Link
+            to="/forgot-password"
+            className="mt-1 inline-block text-xs hover:underline"
+            style={{ color: 'var(--color-accent)' }}
+          >
+            Forgot your password?
+          </Link>
         </div>
 
         {login.error && (

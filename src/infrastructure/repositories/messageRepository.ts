@@ -13,6 +13,7 @@
 
 import { httpClient } from '../http/client'
 import type { Message, MessageList, Reaction, ReactionCount } from '@/domain/message/entities'
+import type { LanguageCode, Translation } from '@/domain/translation/entities'
 
 // ── Raw shapes ────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,9 @@ interface RawMessage {
   conversation_id: string | null
   user_id: string
   content: string
+  original_language?: LanguageCode | null
+  language_auto_detected?: boolean | null
+  translations?: Partial<Record<LanguageCode, Translation>> | null
   message_type: string
   reply_to_id: string | null
   is_deleted: boolean
@@ -73,6 +77,9 @@ function mapMessage(raw: RawMessage): Message {
     conversationId: raw.conversation_id,
     userId: raw.user_id,
     content: raw.content,
+    originalLanguage: raw.original_language ?? undefined,
+    languageAutoDetected: raw.language_auto_detected ?? undefined,
+    translations: raw.translations ?? undefined,
     messageType: raw.message_type as Message['messageType'],
     replyToId: raw.reply_to_id,
     isDeleted: raw.is_deleted,

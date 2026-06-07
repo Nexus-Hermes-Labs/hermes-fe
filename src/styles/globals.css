@@ -22,6 +22,8 @@
   --color-danger-hover: #d93025;
   --color-success: #23a55a;
   --color-warning: #f0b232;
+  --color-translation: hsl(184 72% 54%);
+  --color-translation-muted: hsl(184 62% 42%);
 }
 
 :root {

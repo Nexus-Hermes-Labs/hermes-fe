@@ -13,6 +13,7 @@ import { useAuthStore } from '@/state/authStore'
 import { useWsStore } from '@/state/wsStore'
 import { MessageList } from '@/presentation/components/message/MessageList'
 import { MessageInput } from '@/presentation/components/message/MessageInput'
+import { ConversationTranslationControl } from '@/presentation/components/translation/ConversationTranslationControl'
 import type { Message } from '@/domain/message/entities'
 import type { SendMessageData } from '@/presentation/dto/message.dto'
 
@@ -96,6 +97,9 @@ export default function DmConversationPage({ conversationId }: DmConversationPag
             {conversation.members.length} members
           </span>
         )}
+        <div className="ml-auto">
+          <ConversationTranslationControl conversationKey={conversationId} />
+        </div>
       </div>
 
       {/* Messages */}
@@ -121,6 +125,7 @@ export default function DmConversationPage({ conversationId }: DmConversationPag
         isSending={sendMessage.isPending}
         replyTo={replyTo}
         onCancelReply={() => setReplyTo(null)}
+        conversationKey={conversationId}
       />
     </div>
   )
